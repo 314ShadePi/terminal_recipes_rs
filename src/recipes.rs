@@ -5,7 +5,14 @@ pub struct Recipes(pub Vec<Recipe>);
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Recipe {
+    pub ingredients: Vec<Ingredient>,
+    pub steps: Option<Vec<String>>,
+}
 
+#[derive(Deserialize, Serialize, Clone)]
+pub struct Ingredient {
+    pub amount: String,
+    pub name: String,
 }
 
 impl std::ops::Deref for Recipes {
