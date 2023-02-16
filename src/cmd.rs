@@ -1,10 +1,14 @@
 use std::str::FromStr;
+use strum;
+use strum::{Display, EnumIter, EnumVariantNames};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Display, EnumIter, EnumVariantNames)]
+#[strum(serialize_all = "lowercase")]
 pub enum Cmd {
     Exit,
     List,
     View(String),
+    Config(String),
 }
 
 impl FromStr for Cmd {
@@ -23,6 +27,7 @@ impl FromStr for Cmd {
             ("exit", _) => Ok(Self::Exit),
             ("list", _) => Ok(Self::List),
             ("view", param) => Ok(Self::View(param.to_string())),
+            ("config", param) => Ok(Self::Config(param.to_string())),
             _ => Err(()),
         }
     }

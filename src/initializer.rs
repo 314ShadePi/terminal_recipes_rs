@@ -2,7 +2,6 @@ use crate::{cache::Cache, cfg::Config};
 use home::home_dir;
 use std::fs::{create_dir, read_to_string, write, File};
 use std::path::PathBuf;
-use std::str::FromStr;
 
 pub fn init() -> (PathBuf, (PathBuf, Config)) {
     let recipe_dir = get_recipe_dir();

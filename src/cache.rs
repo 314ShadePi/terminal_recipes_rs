@@ -3,7 +3,6 @@ use glob::glob;
 use serde::{Deserialize, Serialize};
 use std::fs::{read_to_string, write, File};
 use std::path::PathBuf;
-use std::str::FromStr;
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
 pub struct Cache {
@@ -60,7 +59,7 @@ impl Cache {
                         path: f,
                     })
                 }
-                Err(e) => Err(()),
+                Err(_) => Err(()),
             })
             .filter_map(|e| e.ok())
             .collect::<Vec<CacheEntry>>();
