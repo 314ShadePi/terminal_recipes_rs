@@ -47,6 +47,11 @@ fn handle_cmd(cmd: String, recipe_dir: PathBuf, cfg: (PathBuf, Config)) {
         Cmd::List => list(recipe_dir.clone(), cfg.1.clone()),
         Cmd::View(_) => {}
         Cmd::Config(_) => {}
+        Cmd::RebuildCache => {
+            println!("Rebuilding cache, please wait...");
+            Cache::rebuild_cache(recipe_dir.clone().join("data/"), recipe_dir.clone());
+            println!("Cache rebuilt!");
+        }
     }
 }
 
@@ -64,5 +69,5 @@ fn list(recipe_dir: PathBuf, _cfg: Config) {
         Err(_) => return,
     };
 
-    println!("{}", file);
+    print!("{}", file);
 }
