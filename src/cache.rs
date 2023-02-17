@@ -1,6 +1,7 @@
 use crate::recipe::Recipe;
 use glob::glob;
 use serde::{Deserialize, Serialize};
+use std::fmt::Formatter;
 use std::fs::{read_to_string, write, File};
 use std::path::PathBuf;
 
@@ -80,5 +81,20 @@ impl Cache {
                 std::process::exit(1);
             }
         }
+    }
+}
+
+impl std::fmt::Display for Cache {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for (idx, e) in self.entries.iter().enumerate() {
+            writeln!(f, "{}. {}", idx, e);
+        }
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for CacheEntry {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
     }
 }
