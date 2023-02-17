@@ -8,6 +8,7 @@ use crate::cache::Cache;
 use crate::cfg::Config;
 use crate::cmd::Cmd;
 use crate::initializer::init;
+use crate::recipe::Recipe;
 use inquire::{validator::Validation, Text};
 use std::fs::read_to_string;
 use std::path::PathBuf;
@@ -18,7 +19,15 @@ fn main() {
     let (recipe_dir, cfg) = init();
 
     let cmd_validator = |input: &str| {
-        if Cmd::VARIANTS.contains(&input) {
+        let s: (&str, &str) = match input.contains(" ") {
+            true => match input.split_once(' ') {
+                None => return Ok(Validation::Invalid("Couldn't parse command.".into())),
+                Some(s) => s,
+            },
+            false => (input, ""),
+        };
+
+        if Cmd::VARIANTS.contains(&s.0) {
             Ok(Validation::Valid)
         } else {
             Ok(Validation::Invalid("Not a command.".into()))
@@ -45,7 +54,11 @@ fn handle_cmd(cmd: String, recipe_dir: PathBuf, cfg: (PathBuf, Config)) {
     match cmd {
         Cmd::Exit => std::process::exit(0),
         Cmd::List => list(recipe_dir.clone(), cfg.1.clone()),
-        Cmd::View(_) => {}
+        Cmd::View(recipe) => Recipe::view(
+            recipe_dir.clone().join("data/").join("cache.json"),
+            recipe_dir.clone(),
+            recipe.clone(),
+        ),
         Cmd::Config(_) => {}
         Cmd::RebuildCache => {
             println!("Rebuilding cache, please wait...");

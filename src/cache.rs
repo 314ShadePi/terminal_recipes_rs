@@ -86,7 +86,7 @@ impl Cache {
 
 impl std::fmt::Display for Cache {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "To view a recipe use 'view <id OR name>'.");
+        writeln!(f, "To view a recipe use 'view <name>'.");
         for (idx, e) in self.entries.iter().enumerate() {
             writeln!(f, "{}. {}", idx, e);
         }
