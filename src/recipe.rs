@@ -1,5 +1,4 @@
-use crate::cache::{Cache, CacheEntry};
-use crate::CACHE_FILE;
+use crate::cache::Cache;
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 use std::fs::read_to_string;
@@ -57,21 +56,21 @@ impl Recipe {
 
 impl std::fmt::Display for Recipe {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "# {}", self.name);
-        writeln!(f, "Ingredients:");
+        writeln!(f, "# {}", self.name)?;
+        writeln!(f, "Ingredients:")?;
         for (idx, e) in self.ingredients.iter().enumerate() {
-            writeln!(f, "\t{}. {}", idx, e);
+            writeln!(f, "\t{}. {}", idx, e)?;
         }
         match &self.steps {
             None => {
-                write!(f, "No steps to follow. Bon appetit!");
+                write!(f, "No steps to follow. Bon appetit!")?;
             }
             Some(steps) => {
-                writeln!(f, "Steps:");
+                writeln!(f, "Steps:")?;
                 for (idx, e) in steps.iter().enumerate() {
-                    writeln!(f, "\t{}. {}", idx, e);
+                    writeln!(f, "\t{}. {}", idx, e)?;
                 }
-                write!(f, "Bon appetit!");
+                write!(f, "Bon appetit!")?;
             }
         }
         Ok(())

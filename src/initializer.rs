@@ -2,7 +2,7 @@ use crate::cache::Cache;
 use crate::config::Config;
 use crate::{CONFIG_FILE, DATA_DIR, RECIPE_DIR};
 use std::fs::{create_dir, read_to_string, write, File};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub fn init() -> Result<(), ()> {
     create_dir_c(PathBuf::from(&RECIPE_DIR.clone().to_string()))?;
