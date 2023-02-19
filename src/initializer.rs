@@ -1,84 +1,68 @@
-use crate::{cache::Cache, cfg::Config};
-use home::home_dir;
+use crate::cache::Cache;
+use crate::config::Config;
+use crate::{CONFIG_FILE, DATA_DIR, RECIPE_DIR};
 use std::fs::{create_dir, read_to_string, write, File};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-pub fn init() -> (PathBuf, (PathBuf, Config)) {
-    let recipe_dir = get_recipe_dir();
-    create_data_dir(recipe_dir.clone());
-    let cfg = load_config(recipe_dir.clone());
-    let (_, config) = cfg.clone();
+pub fn init() -> Result<(), ()> {
+    create_dir_c(PathBuf::from(&RECIPE_DIR.clone().to_string()))?;
+    create_dir_c(PathBuf::from(&DATA_DIR.clone().to_string()))?;
+    let config = load_config(true)?;
 
     if config.rebuild_cache_on_startup {
-        Cache::rebuild_cache(recipe_dir.clone().join("data/"), recipe_dir.clone());
+        Cache::rebuild()?;
     }
 
-    (recipe_dir, cfg)
+    Ok(())
 }
 
-fn get_recipe_dir() -> PathBuf {
-    let home = match home_dir() {
-        None => {
-            println!("Couldn't get home_dir.");
-            std::process::exit(1);
-        }
-        Some(h) => h,
-    };
-
-    let recipe_dir = home.join(".recipes/");
-
-    create_dir_c(recipe_dir.clone());
-
-    recipe_dir
-}
-
-fn create_data_dir(recipe_dir: PathBuf) {
-    let data_dir = recipe_dir.join("data/");
-
-    create_dir_c(data_dir);
-}
-
-fn load_config(recipe_dir: PathBuf) -> (PathBuf, Config) {
-    let cfg_path = recipe_dir.clone().join("data/").join("config.json");
-
-    match cfg_path.clone().try_exists() {
+fn create_dir_c(path: PathBuf) -> Result<(), ()> {
+    match path.clone().try_exists() {
         Ok(res) => {
             if !res {
-                match File::create(cfg_path.clone()) {
-                    Ok(_) => {
-                        let content = match serde_json::to_string_pretty(&Config::default()) {
-                            Ok(c) => c,
-                            Err(e) => {
-                                println!("ERROR: {}", e);
-                                std::process::exit(1);
-                            }
-                        };
-                        match write(cfg_path.clone(), content) {
-                            Ok(_) => {}
-                            Err(e) => {
-                                println!("ERROR: {}", e);
-                                std::process::exit(1);
-                            }
-                        }
-                    }
+                return match create_dir(path.clone()) {
+                    Ok(_) => Ok(()),
                     Err(e) => {
                         println!("ERROR: {}", e);
-                        std::process::exit(1);
+                        Err(())
                     }
-                }
+                };
             }
         }
         Err(e) => {
             println!("ERROR: {}", e);
-            std::process::exit(1);
+            return Err(());
         }
     }
 
-    let cfg_content = match read_to_string(cfg_path.clone()) {
+    Ok(())
+}
+
+pub fn load_config(first: bool) -> Result<Config, ()> {
+    let exec = |p: PathBuf| {
+        let content = match serde_json::to_string_pretty(&Config::default()) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("ERROR: {}", e);
+                return Err(());
+            }
+        };
+        return match write(p.clone(), content) {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                println!("ERROR: {}", e);
+                Err(())
+            }
+        };
+    };
+
+    create_file_c(PathBuf::from(&CONFIG_FILE.clone().to_string()), exec)?;
+
+    let cfg_content = match read_to_string(PathBuf::from(&CONFIG_FILE.clone().to_string())) {
         Ok(f) => f,
         Err(e) => {
             println!("ERROR: {}", e);
-            std::process::exit(1);
+            return Err(());
         }
     };
 
@@ -86,29 +70,42 @@ fn load_config(recipe_dir: PathBuf) -> (PathBuf, Config) {
         Ok(cfg) => cfg,
         Err(e) => {
             println!("ERROR: {}", e);
-            std::process::exit(1);
+            if first {
+                exec(PathBuf::from(&CONFIG_FILE.clone().to_string()))?;
+                load_config(false)?
+            } else {
+                return Err(());
+            }
         }
     };
 
-    (cfg_path, cfg_data)
+    Ok(cfg_data)
 }
 
-fn create_dir_c(dir: PathBuf) {
-    match dir.clone().try_exists() {
+pub fn create_file_c<F>(path: PathBuf, exec: F) -> Result<(), ()>
+where
+    F: Fn(PathBuf) -> Result<(), ()>,
+{
+    match path.clone().try_exists() {
         Ok(res) => {
             if !res {
-                match create_dir(dir.clone()) {
-                    Ok(_) => {}
+                return match File::create(path.clone()) {
+                    Ok(_) => {
+                        exec(path.clone())?;
+                        Ok(())
+                    }
                     Err(e) => {
                         println!("ERROR: {}", e);
-                        std::process::exit(1);
+                        Err(())
                     }
-                }
+                };
             }
         }
         Err(e) => {
             println!("ERROR: {}", e);
-            std::process::exit(1);
+            return Err(());
         }
     }
+
+    Ok(())
 }

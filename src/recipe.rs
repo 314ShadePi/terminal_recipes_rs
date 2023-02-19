@@ -1,8 +1,8 @@
-use crate::cache::Cache;
+use crate::cache::{Cache, CacheEntry};
+use crate::CACHE_FILE;
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 use std::fs::read_to_string;
-use std::path::PathBuf;
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Recipe {
@@ -18,62 +18,36 @@ pub struct Ingredient {
 }
 
 impl Recipe {
-    pub fn view(cache: PathBuf, recipe_dir: PathBuf, recipe: String) {
-        let recipe = match Self::get_recipe(cache.clone(), recipe_dir.clone(), recipe.clone(), true)
-        {
-            Ok(r) => r,
-            Err(_) => {
-                println!("Could not get recipe!");
-                return;
-            }
-        };
+    pub fn get_recipe(recipe: String, first: bool) -> Result<Self, ()> {
+        let cache = Cache::get_cache(true)?;
 
-        println!("{}", recipe);
-    }
-
-    fn get_recipe(
-        cache: PathBuf,
-        recipe_dir: PathBuf,
-        recipe: String,
-        first_run: bool,
-    ) -> Result<Self, ()> {
-        let cache_s = match read_to_string(cache.clone()) {
-            Ok(s) => s,
-            Err(_) => {
-                println!("Could not read cache!");
-                return Err(());
-            }
-        };
-
-        let cache_s = match serde_json::from_str::<Cache>(&cache_s) {
-            Ok(c) => c,
-            Err(_) => return Err(()),
-        };
-
-        let recipe = match cache_s.entries.iter().find(|entry| entry.name == recipe) {
+        let recipe = match cache.entries.iter().find(|entry| entry.name == recipe) {
             None => {
-                if first_run {
-                    Cache::rebuild_cache(recipe_dir.clone().join("data/"), recipe_dir.clone());
-                    Self::get_recipe(cache.clone(), recipe_dir.clone(), recipe.clone(), false)
+                if first {
+                    Cache::rebuild()?;
+                    Self::get_recipe(recipe.clone(), false)
                 } else {
-                    return Err(());
+                    Err(())
                 }
             }
-            Some(r) => {
-                let recipe_s = match read_to_string(r.path.clone()) {
+            Some(recipe) => {
+                let recipe = match read_to_string(recipe.path.clone()) {
                     Ok(s) => s,
-                    Err(_) => {
-                        println!("Could not read recipe!");
+                    Err(e) => {
+                        println!("ERROR: {}", e);
                         return Err(());
                     }
                 };
 
-                let recipe_s = match serde_json::from_str::<Self>(&recipe_s) {
-                    Ok(c) => c,
-                    Err(_) => return Err(()),
+                let recipe = match serde_json::from_str::<Self>(&recipe) {
+                    Ok(r) => r,
+                    Err(e) => {
+                        println!("ERROR: {}", e);
+                        return Err(());
+                    }
                 };
 
-                Ok(recipe_s)
+                Ok(recipe)
             }
         };
 
