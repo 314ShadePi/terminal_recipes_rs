@@ -72,6 +72,31 @@ impl Cache {
             }
         };
     }
+
+    pub fn get_cache(first: bool) -> Result<Self, ()> {
+        let cache = match read_to_string(&CACHE_FILE.clone()) {
+            Ok(s) => s,
+            Err(e) => {
+                println!("ERROR: {}", e);
+                return Err(());
+            }
+        };
+
+        let cache = match serde_json::from_str::<Cache>(&cache) {
+            Ok(c) => c,
+            Err(e) => {
+                if first {
+                    Self::rebuild()?;
+                    Self::get_cache(false)?
+                } else {
+                    println!("ERROR: {}", e);
+                    return Err(());
+                }
+            }
+        };
+
+        Ok(cache)
+    }
 }
 
 impl std::fmt::Display for Cache {
