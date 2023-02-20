@@ -5,7 +5,7 @@ use crate::commands::rebuild_cache::RebuildCache;
 use crate::commands::view::View;
 use cmd_sys::EnumCommandLine;
 
-#[derive(Clone, EnumCommandLine)]
+#[derive(Debug, Clone, EnumCommandLine)]
 pub enum CommandLine {
     List(List),
     View(View),

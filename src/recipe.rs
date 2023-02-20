@@ -18,6 +18,7 @@ pub struct Ingredient {
 }
 
 impl Recipe {
+    #[tracing::instrument]
     pub fn get_recipe(recipe: &str, first: bool) -> anyhow::Result<Self> {
         let cache = Cache::get_cache(true)?;
 
@@ -32,7 +33,7 @@ impl Recipe {
                         }
                     }
                 } else {
-                    println!("Recipe doesn't exist.");
+                    tracing::error!("Recipe doesn't exist.");
                     bail!("Recipe doesn't exist.")
                 }
             }
@@ -42,6 +43,7 @@ impl Recipe {
                     Err(e) => {
                         let e = anyhow!(e);
                         let e = e.context("Couldn't read recipe.");
+                        tracing::error!("{:?}", e);
                         return Err(e);
                     }
                 };
@@ -51,6 +53,7 @@ impl Recipe {
                     Err(e) => {
                         let e = anyhow!(e);
                         let e = e.context("Couldn't deserialize recipe.");
+                        tracing::error!("{:?}", e);
                         return Err(e);
                     }
                 }

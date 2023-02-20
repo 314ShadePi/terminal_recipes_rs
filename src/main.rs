@@ -5,8 +5,11 @@ use cmd_sys::EnumCommandLine;
 use home::home_dir;
 use lazy_static::lazy_static;
 use std::clone::Clone;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::string::ToString;
+use tracing::Level;
+use tracing_subscriber::fmt;
+use tracing_subscriber::fmt::format::FmtSpan;
 
 mod cache;
 mod cl;
@@ -61,7 +64,25 @@ lazy_static! {
 }
 
 fn main() {
-    println!(
+    let file_appender = tracing_appender::rolling::hourly(
+        PathBuf::from(&<&str>::clone(&DATA_DIR)),
+        "terminal_recipes_rs.log",
+    );
+
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+
+    let subscriber = fmt()
+        .with_writer(non_blocking)
+        .with_max_level(Level::TRACE)
+        .with_file(true)
+        .with_line_number(true)
+        .with_span_events(FmtSpan::FULL)
+        .json()
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
+    tracing::trace!(
         "{}::::{}::::{}::::{}",
         &RECIPE_DIR.to_string(),
         &DATA_DIR.to_string(),
@@ -72,7 +93,7 @@ fn main() {
     initializer::init().unwrap();
 
     let error_handler = |e: anyhow::Error| {
-        eprintln!("ERROR: {e}");
+        eprintln!("{e:#}");
         Ok(())
     };
 

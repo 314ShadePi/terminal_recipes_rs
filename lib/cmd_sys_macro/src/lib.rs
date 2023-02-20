@@ -77,12 +77,14 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         use cmd_sys::Command;
         use anyhow::bail;
         impl #impl_generics EnumCommandLine for #name #ty_generics #where_clause {
+            #[tracing::instrument]
             fn run(&self) -> anyhow::Result<()> {
                 match self {
                     #(#runners),*
                 }
             }
 
+            #[tracing::instrument]
             fn validate(input: &str) -> Result<Validation, CustomUserError> {
                 let s: (&str, &str) = match input.contains(" ") {
                     true => match input.split_once(' ') {
@@ -99,6 +101,7 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                 Ok(Validation::Valid)
             }
 
+            #[tracing::instrument(skip(error_handler))]
             fn command_line<F>(prompt: &str, error_handler: F)
             where
                 F: Fn(anyhow::Error) -> Result<(), ()>
@@ -137,6 +140,7 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                 }
             }
 
+            #[tracing::instrument]
             fn from_cl(s: &str) -> anyhow::Result<Self> {
                 let s = match s.contains(" ") {
                     true => match s.split_once(' ') {

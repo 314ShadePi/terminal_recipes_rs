@@ -5,6 +5,7 @@ use anyhow::{anyhow, Context};
 use std::fs::{create_dir, read_to_string, write, File};
 use std::path::PathBuf;
 
+#[tracing::instrument]
 pub fn init() -> anyhow::Result<()> {
     create_dir_c(&PathBuf::from(&RECIPE_DIR.to_string()))?;
     create_dir_c(&PathBuf::from(&DATA_DIR.to_string()))?;
@@ -17,6 +18,7 @@ pub fn init() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[tracing::instrument]
 fn create_dir_c(path: &PathBuf) -> anyhow::Result<()> {
     match path.try_exists() {
         Ok(res) => {
@@ -42,6 +44,7 @@ fn create_dir_c(path: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[tracing::instrument]
 pub fn load_config(first: bool) -> anyhow::Result<Config> {
     let exec = |p: PathBuf| {
         let content = serde_json::to_string_pretty(&Config::default())
@@ -71,6 +74,7 @@ pub fn load_config(first: bool) -> anyhow::Result<Config> {
     Ok(cfg_data)
 }
 
+#[tracing::instrument(skip(exec))]
 pub fn create_file_c<F>(path: PathBuf, exec: F) -> anyhow::Result<()>
 where
     F: Fn(PathBuf) -> anyhow::Result<()>,

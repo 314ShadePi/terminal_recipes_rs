@@ -1,12 +1,13 @@
 use crate::cache::Cache;
 use cmd_sys::Command;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct RebuildCache;
 
 impl Command for RebuildCache {
     const CMD: &'static str = "rebuild-cache";
 
+    #[tracing::instrument]
     fn run(&self) -> anyhow::Result<()> {
         println!("Rebuilding cache, please wait...");
         Cache::rebuild()?;
@@ -14,6 +15,7 @@ impl Command for RebuildCache {
         Ok(())
     }
 
+    #[tracing::instrument]
     fn new_cmd(_params: Vec<String>) -> anyhow::Result<Self> {
         Ok(Self {})
     }

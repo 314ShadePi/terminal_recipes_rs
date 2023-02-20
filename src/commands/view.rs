@@ -1,7 +1,7 @@
 use crate::recipe::Recipe;
 use cmd_sys::Command;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct View {
     recipe: String,
 }
@@ -9,6 +9,7 @@ pub struct View {
 impl Command for View {
     const CMD: &'static str = "view";
 
+    #[tracing::instrument]
     fn run(&self) -> anyhow::Result<()> {
         let recipe = Recipe::get_recipe(&self.recipe, true)?;
 
@@ -16,6 +17,7 @@ impl Command for View {
         Ok(())
     }
 
+    #[tracing::instrument]
     fn new_cmd(params: Vec<String>) -> anyhow::Result<Self> {
         Ok(Self {
             recipe: params.join(" "),
