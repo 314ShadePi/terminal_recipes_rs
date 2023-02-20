@@ -1,5 +1,4 @@
 #![deny(clippy::pedantic, clippy::complexity)]
-#![warn(clippy::cargo)]
 
 use c314_utils::prelude::ToStaticStr;
 use cmd_sys::EnumCommandLine;

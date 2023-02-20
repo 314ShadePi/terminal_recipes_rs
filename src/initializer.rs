@@ -5,8 +5,8 @@ use std::fs::{create_dir, read_to_string, write, File};
 use std::path::PathBuf;
 
 pub fn init() -> Result<(), ()> {
-    create_dir_c(PathBuf::from(&RECIPE_DIR.clone().to_string()))?;
-    create_dir_c(PathBuf::from(&DATA_DIR.clone().to_string()))?;
+    create_dir_c(PathBuf::from(&RECIPE_DIR.to_string()))?;
+    create_dir_c(PathBuf::from(&DATA_DIR.to_string()))?;
     let config = load_config(true)?;
 
     if config.rebuild_cache_on_startup {
@@ -20,17 +20,17 @@ fn create_dir_c(path: PathBuf) -> Result<(), ()> {
     match path.clone().try_exists() {
         Ok(res) => {
             if !res {
-                return match create_dir(path.clone()) {
+                return match create_dir(path) {
                     Ok(_) => Ok(()),
                     Err(e) => {
-                        println!("ERROR: {}", e);
+                        println!("ERROR: {e}");
                         Err(())
                     }
                 };
             }
         }
         Err(e) => {
-            println!("ERROR: {}", e);
+            println!("ERROR: {e}");
             return Err(());
         }
     }

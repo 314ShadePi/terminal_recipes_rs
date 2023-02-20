@@ -11,7 +11,7 @@ impl Command for List {
     fn run(&self) -> Result<(), Self::Err> {
         let cache = Cache::get_cache(true)?;
 
-        print!("{}", cache);
+        print!("{cache}");
 
         Ok(())
     }

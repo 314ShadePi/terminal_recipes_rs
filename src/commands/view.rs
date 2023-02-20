@@ -11,20 +11,17 @@ impl Command for View {
     const CMD: &'static str = "view";
 
     fn run(&self) -> Result<(), Self::Err> {
-        let recipe = match Recipe::get_recipe(&self.recipe, true) {
-            Ok(r) => r,
-            Err(()) => {
-                return Err(());
-            }
+        let Ok(recipe) = Recipe::get_recipe(&self.recipe, true) else {
+            return Err(());
         };
 
-        println!("{}", recipe);
+        println!("{recipe}");
         Ok(())
     }
 
     fn new_cmd(params: Vec<String>) -> Result<Self, Self::Err> {
         Ok(Self {
-            recipe: params.clone().join(" "),
+            recipe: params.join(" "),
         })
     }
 }

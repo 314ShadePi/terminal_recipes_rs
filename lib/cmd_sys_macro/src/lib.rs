@@ -30,7 +30,6 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         .collect::<Vec<String>>();
 
     let variant_cmds = variants
-        .clone()
         .iter()
         .map(|e| {
             let cmd_ident = Ident::new(e, Span::call_site());
@@ -41,7 +40,6 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         .collect::<Vec<_>>();
 
     let runners = variants
-        .clone()
         .iter()
         .map(|e| {
             let cmd_ident = Ident::new(e, Span::call_site());
@@ -51,7 +49,6 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         .collect::<Vec<_>>();
 
     let variant_ctors = variants
-        .clone()
         .iter()
         .map(|e| {
             let cmd_ident = Ident::new(e, Span::call_site());
