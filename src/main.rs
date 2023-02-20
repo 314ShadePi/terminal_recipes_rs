@@ -72,7 +72,7 @@ fn main() {
     initializer::init().unwrap();
 
     let error_handler = |e: anyhow::Error| {
-        println!("ERROR: {e}");
+        eprintln!("ERROR: {e}");
         Ok(())
     };
 
