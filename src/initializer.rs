@@ -6,8 +6,8 @@ use std::fs::{create_dir, read_to_string, write, File};
 use std::path::PathBuf;
 
 pub fn init() -> anyhow::Result<()> {
-    create_dir_c(PathBuf::from(&RECIPE_DIR.to_string()))?;
-    create_dir_c(PathBuf::from(&DATA_DIR.to_string()))?;
+    create_dir_c(&PathBuf::from(&RECIPE_DIR.to_string()))?;
+    create_dir_c(&PathBuf::from(&DATA_DIR.to_string()))?;
     let config = load_config(true)?;
 
     if config.rebuild_cache_on_startup {
@@ -17,15 +17,15 @@ pub fn init() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn create_dir_c(path: PathBuf) -> anyhow::Result<()> {
-    match path.clone().try_exists() {
+fn create_dir_c(path: &PathBuf) -> anyhow::Result<()> {
+    match path.try_exists() {
         Ok(res) => {
             if !res {
                 return match create_dir(path.clone()) {
                     Ok(_) => Ok(()),
                     Err(e) => {
                         let e = anyhow!(e);
-                        let error = format!("Couldn't create dir {:#?}", path);
+                        let error = format!("Couldn't create dir {path:#?}");
                         let e = e.context(error);
                         Err(e)
                     }
@@ -85,7 +85,7 @@ where
                     }
                     Err(e) => {
                         let e = anyhow!(e);
-                        let err = format!("Couldn't create file {:#?}", path);
+                        let err = format!("Couldn't create file {path:#?}");
                         let e = e.context(err);
                         Err(e)
                     }

@@ -46,16 +46,14 @@ impl Recipe {
                     }
                 };
 
-                let recipe = match serde_json::from_str::<Self>(&recipe) {
+                match serde_json::from_str::<Self>(&recipe) {
                     Ok(r) => r,
                     Err(e) => {
                         let e = anyhow!(e);
                         let e = e.context("Couldn't deserialize recipe.");
                         return Err(e);
                     }
-                };
-
-                recipe
+                }
             }
         };
 
