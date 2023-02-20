@@ -11,7 +11,7 @@ impl Command for View {
     const CMD: &'static str = "view";
 
     fn run(&self) -> Result<(), Self::Err> {
-        let recipe = match Recipe::get_recipe(self.recipe.clone(), true) {
+        let recipe = match Recipe::get_recipe(&self.recipe, true) {
             Ok(r) => r,
             Err(()) => {
                 return Err(());

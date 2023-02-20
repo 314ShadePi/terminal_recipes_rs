@@ -17,14 +17,14 @@ pub struct Ingredient {
 }
 
 impl Recipe {
-    pub fn get_recipe(recipe: String, first: bool) -> Result<Self, ()> {
+    pub fn get_recipe(recipe: &str, first: bool) -> Result<Self, ()> {
         let cache = Cache::get_cache(true)?;
 
         let recipe = match cache.entries.iter().find(|entry| entry.name == recipe) {
             None => {
                 if first {
                     Cache::rebuild()?;
-                    Self::get_recipe(recipe.clone(), false)
+                    Self::get_recipe(recipe, false)
                 } else {
                     Err(())
                 }
@@ -33,7 +33,7 @@ impl Recipe {
                 let recipe = match read_to_string(recipe.path.clone()) {
                     Ok(s) => s,
                     Err(e) => {
-                        println!("ERROR: {}", e);
+                        println!("ERROR: {e}");
                         return Err(());
                     }
                 };
@@ -41,7 +41,7 @@ impl Recipe {
                 let recipe = match serde_json::from_str::<Self>(&recipe) {
                     Ok(r) => r,
                     Err(e) => {
-                        println!("ERROR: {}", e);
+                        println!("ERROR: {e}");
                         return Err(());
                     }
                 };
@@ -59,7 +59,7 @@ impl std::fmt::Display for Recipe {
         writeln!(f, "# {}", self.name)?;
         writeln!(f, "Ingredients:")?;
         for (idx, e) in self.ingredients.iter().enumerate() {
-            writeln!(f, "\t{}. {}", idx, e)?;
+            writeln!(f, "\t{idx}. {e}")?;
         }
         match &self.steps {
             None => {
@@ -68,7 +68,7 @@ impl std::fmt::Display for Recipe {
             Some(steps) => {
                 writeln!(f, "Steps:")?;
                 for (idx, e) in steps.iter().enumerate() {
-                    writeln!(f, "\t{}. {}", idx, e)?;
+                    writeln!(f, "\t{idx}. {e}")?;
                 }
                 write!(f, "Bon appetit!")?;
             }

@@ -1,3 +1,6 @@
+#![deny(clippy::pedantic, clippy::complexity)]
+#![warn(clippy::cargo)]
+
 use c314_utils::prelude::ToStaticStr;
 use cmd_sys::EnumCommandLine;
 use home::home_dir;
@@ -27,7 +30,7 @@ lazy_static! {
 
 lazy_static! {
     pub static ref DATA_DIR: &'static str = {
-        Path::new(&RECIPE_DIR.clone())
+        Path::new(&<&str>::clone(&RECIPE_DIR))
             .join("data/")
             .to_str()
             .unwrap()
@@ -38,7 +41,7 @@ lazy_static! {
 
 lazy_static! {
     pub static ref CACHE_FILE: &'static str = {
-        Path::new(&DATA_DIR.clone())
+        Path::new(&<&str>::clone(&DATA_DIR))
             .join("cache.json")
             .to_str()
             .unwrap()
@@ -49,7 +52,7 @@ lazy_static! {
 
 lazy_static! {
     pub static ref CONFIG_FILE: &'static str = {
-        Path::new(&DATA_DIR.clone())
+        Path::new(&<&str>::clone(&DATA_DIR))
             .join("config.json")
             .to_str()
             .unwrap()
@@ -61,12 +64,12 @@ lazy_static! {
 fn main() {
     println!(
         "{}::::{}::::{}::::{}",
-        &RECIPE_DIR.clone().to_string(),
-        &DATA_DIR.clone().to_string(),
-        &CACHE_FILE.clone().to_string(),
-        &CONFIG_FILE.clone().to_string()
+        &RECIPE_DIR.to_string(),
+        &DATA_DIR.to_string(),
+        &CACHE_FILE.to_string(),
+        &CONFIG_FILE.to_string()
     );
 
     initializer::init().unwrap();
-    cl::CommandLine::command_line("Terminal Recipes> ")
+    cl::CommandLine::command_line("Terminal Recipes> ");
 }
