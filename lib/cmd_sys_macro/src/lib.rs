@@ -9,6 +9,7 @@ pub fn commands_enum(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     tokens.into()
 }
 
+#[allow(clippy::too_many_lines)]
 fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
     let name = &ast.ident;
     let gen = &ast.generics;
