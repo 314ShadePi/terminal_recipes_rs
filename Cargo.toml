@@ -10,6 +10,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = { version = "1.0.69", features = ["backtrace"] }
 c314-utils = "0.2.0"
 cmd_sys = { path = "./lib/cmd_sys" }
 glob = "0.3.1"

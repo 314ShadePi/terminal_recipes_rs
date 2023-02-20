@@ -63,8 +63,7 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                             .iter()
                             .map(|e| e.to_string())
                             .collect(),
-                    )
-                    .unwrap(),
+                    )?,
                 ))
             };
             ret
@@ -76,10 +75,9 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         use inquire::CustomUserError;
         use inquire::Text;
         use cmd_sys::Command;
+        use anyhow::bail;
         impl #impl_generics EnumCommandLine for #name #ty_generics #where_clause {
-            type Err = ();
-
-            fn run(&self) -> Result<(), Self::Err> {
+            fn run(&self) -> anyhow::Result<()> {
                 match self {
                     #(#runners),*
                 }
@@ -101,7 +99,10 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                 Ok(Validation::Valid)
             }
 
-            fn command_line(prompt: &str) {
+            fn command_line<F>(prompt: &str, error_handler: F)
+            where
+                F: Fn(anyhow::Error) -> Result<(), ()>
+            {
                 loop {
                     let cmd = Text::new(prompt)
                         .with_validator(Self::validate)
@@ -112,7 +113,23 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                             if s == "exit".to_string() {
                                 return;
                             } else {
-                                Self::from_cl(&s).unwrap().run().unwrap()
+                                match Self::from_cl(&s) {
+                                    Ok(c) => match c.run() {
+                                        Ok(()) => {}
+                                        Err(e) => match error_handler(e) {
+                                            Ok(()) => {}
+                                            Err(()) => {
+                                                return;
+                                            }
+                                        },
+                                    },
+                                    Err(e) => match error_handler(e) {
+                                        Ok(()) => {}
+                                        Err(()) => {
+                                            return;
+                                        }
+                                    },
+                                }
                             }
                         }
                         Err(_) => {}
@@ -120,10 +137,10 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                 }
             }
 
-            fn from_cl(s: &str) -> Result<Self, Self::Err> {
+            fn from_cl(s: &str) -> anyhow::Result<Self> {
                 let s = match s.contains(" ") {
                     true => match s.split_once(' ') {
-                        None => return Err(()),
+                        None => bail!("split_once() operation failed."),
                         Some(s) => s,
                     },
                     false => (s, ""),
@@ -131,7 +148,7 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
 
                 match s {
                     #(#variant_ctors),*,
-                    _ => Err(()),
+                    _ => bail!("Not a command."),
                 }
             }
         }

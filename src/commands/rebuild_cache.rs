@@ -5,17 +5,16 @@ use cmd_sys::Command;
 pub struct RebuildCache;
 
 impl Command for RebuildCache {
-    type Err = ();
     const CMD: &'static str = "rebuild-cache";
 
-    fn run(&self) -> Result<(), Self::Err> {
+    fn run(&self) -> anyhow::Result<()> {
         println!("Rebuilding cache, please wait...");
         Cache::rebuild()?;
         println!("Cache rebuilt!");
         Ok(())
     }
 
-    fn new_cmd(_params: Vec<String>) -> Result<Self, Self::Err> {
+    fn new_cmd(_params: Vec<String>) -> anyhow::Result<Self> {
         Ok(Self {})
     }
 }

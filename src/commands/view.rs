@@ -7,19 +7,16 @@ pub struct View {
 }
 
 impl Command for View {
-    type Err = ();
     const CMD: &'static str = "view";
 
-    fn run(&self) -> Result<(), Self::Err> {
-        let Ok(recipe) = Recipe::get_recipe(&self.recipe, true) else {
-            return Err(());
-        };
+    fn run(&self) -> anyhow::Result<()> {
+        let recipe = Recipe::get_recipe(&self.recipe, true)?;
 
         println!("{recipe}");
         Ok(())
     }
 
-    fn new_cmd(params: Vec<String>) -> Result<Self, Self::Err> {
+    fn new_cmd(params: Vec<String>) -> anyhow::Result<Self> {
         Ok(Self {
             recipe: params.join(" "),
         })

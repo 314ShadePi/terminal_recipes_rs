@@ -1,6 +1,7 @@
 use crate::initializer::create_file_c;
 use crate::recipe::Recipe;
 use crate::{CACHE_FILE, CONFIG_FILE, RECIPE_DIR};
+use anyhow::{anyhow, Context};
 use glob::glob;
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
@@ -19,11 +20,12 @@ pub struct Entry {
 }
 
 impl Cache {
-    pub fn rebuild() -> Result<(), ()> {
+    pub fn rebuild() -> anyhow::Result<()> {
         create_file_c(
             PathBuf::from(&<&str>::clone(&CONFIG_FILE).to_string()),
             |_| Ok(()),
-        )?;
+        )
+        .context("create_file_c() operation failed on cache file.")?;
 
         let search = Path::new(&<&str>::clone(&RECIPE_DIR))
             .join("*.json")
@@ -57,31 +59,13 @@ impl Cache {
 
         let cache = Cache { entries };
 
-        let content = match serde_json::to_string_pretty(&cache) {
-            Ok(c) => c,
-            Err(e) => {
-                println!("ERROR: {e}");
-                return Err(());
-            }
-        };
+        let content = serde_json::to_string_pretty(&cache).context("Couldn't serialize cache.")?;
 
-        return match write(<&str>::clone(&CACHE_FILE), content) {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                println!("ERROR: {e}");
-                Err(())
-            }
-        };
+        write(<&str>::clone(&CACHE_FILE), content).context("Couldn't write cache.")
     }
 
-    pub fn get_cache(first: bool) -> Result<Self, ()> {
-        let cache = match read_to_string(<&str>::clone(&CACHE_FILE)) {
-            Ok(s) => s,
-            Err(e) => {
-                println!("ERROR: {e}");
-                return Err(());
-            }
-        };
+    pub fn get_cache(first: bool) -> anyhow::Result<Self> {
+        let cache = read_to_string(<&str>::clone(&CACHE_FILE)).context("Couldn't read cache.")?;
 
         let cache = match serde_json::from_str::<Cache>(&cache) {
             Ok(c) => c,
@@ -90,8 +74,9 @@ impl Cache {
                     Self::rebuild()?;
                     Self::get_cache(false)?
                 } else {
-                    println!("ERROR: {e}");
-                    return Err(());
+                    let e = anyhow!(e);
+                    let e = e.context("Couldn't deserialize cache.");
+                    return Err(e);
                 }
             }
         };

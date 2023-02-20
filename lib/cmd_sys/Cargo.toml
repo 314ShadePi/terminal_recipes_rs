@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = { version = "1.0.69", features = ["backtrace"] }
 cmd_sys_macro = { path = "../cmd_sys_macro" }
 inquire = "0.5.3"

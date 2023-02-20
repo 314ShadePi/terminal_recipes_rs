@@ -70,5 +70,11 @@ fn main() {
     );
 
     initializer::init().unwrap();
-    cl::CommandLine::command_line("Terminal Recipes> ");
+
+    let error_handler = |e: anyhow::Error| {
+        println!("ERROR: {e}");
+        Ok(())
+    };
+
+    cl::CommandLine::command_line("Terminal Recipes> ", error_handler);
 }

@@ -5,10 +5,9 @@ use cmd_sys::Command;
 pub struct List;
 
 impl Command for List {
-    type Err = ();
     const CMD: &'static str = "list";
 
-    fn run(&self) -> Result<(), Self::Err> {
+    fn run(&self) -> anyhow::Result<()> {
         let cache = Cache::get_cache(true)?;
 
         print!("{cache}");
@@ -16,7 +15,7 @@ impl Command for List {
         Ok(())
     }
 
-    fn new_cmd(_params: Vec<String>) -> Result<Self, Self::Err> {
+    fn new_cmd(_params: Vec<String>) -> anyhow::Result<Self> {
         Ok(Self {})
     }
 }

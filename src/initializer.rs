@@ -1,10 +1,11 @@
 use crate::cache::Cache;
 use crate::config::Config;
 use crate::{CONFIG_FILE, DATA_DIR, RECIPE_DIR};
+use anyhow::{anyhow, Context};
 use std::fs::{create_dir, read_to_string, write, File};
 use std::path::PathBuf;
 
-pub fn init() -> Result<(), ()> {
+pub fn init() -> anyhow::Result<()> {
     create_dir_c(PathBuf::from(&RECIPE_DIR.to_string()))?;
     create_dir_c(PathBuf::from(&DATA_DIR.to_string()))?;
     let config = load_config(true)?;
@@ -16,65 +17,53 @@ pub fn init() -> Result<(), ()> {
     Ok(())
 }
 
-fn create_dir_c(path: PathBuf) -> Result<(), ()> {
+fn create_dir_c(path: PathBuf) -> anyhow::Result<()> {
     match path.clone().try_exists() {
         Ok(res) => {
             if !res {
-                return match create_dir(path) {
+                return match create_dir(path.clone()) {
                     Ok(_) => Ok(()),
                     Err(e) => {
-                        println!("ERROR: {e}");
-                        Err(())
+                        let e = anyhow!(e);
+                        let error = format!("Couldn't create dir {:#?}", path);
+                        let e = e.context(error);
+                        Err(e)
                     }
                 };
             }
         }
         Err(e) => {
-            println!("ERROR: {e}");
-            return Err(());
+            let e = anyhow!(e);
+            let e = e.context("Couldn't check if dir exists.");
+            return Err(e);
         }
     }
 
     Ok(())
 }
 
-pub fn load_config(first: bool) -> Result<Config, ()> {
+pub fn load_config(first: bool) -> anyhow::Result<Config> {
     let exec = |p: PathBuf| {
-        let content = match serde_json::to_string_pretty(&Config::default()) {
-            Ok(c) => c,
-            Err(e) => {
-                println!("ERROR: {e}");
-                return Err(());
-            }
-        };
-        return match write(p, content) {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                println!("ERROR: {e}");
-                Err(())
-            }
-        };
+        let content = serde_json::to_string_pretty(&Config::default())
+            .context("Couldn't serialize config.")?;
+        write(p, content).context("Couldn't write config.")
     };
 
     create_file_c(PathBuf::from(&CONFIG_FILE.to_string()), exec)?;
 
-    let cfg_content = match read_to_string(PathBuf::from(&CONFIG_FILE.to_string())) {
-        Ok(f) => f,
-        Err(e) => {
-            println!("ERROR: {e}");
-            return Err(());
-        }
-    };
+    let cfg_content =
+        read_to_string(PathBuf::from(&CONFIG_FILE.to_string())).context("Couldn't read config.")?;
 
     let cfg_data = match serde_json::from_str::<Config>(&cfg_content) {
         Ok(cfg) => cfg,
         Err(e) => {
-            println!("ERROR: {e}");
             if first {
                 exec(PathBuf::from(&CONFIG_FILE.to_string()))?;
                 load_config(false)?
             } else {
-                return Err(());
+                let e = anyhow!(e);
+                let e = e.context("Couldn't deserialize config.");
+                return Err(e);
             }
         }
     };
@@ -82,9 +71,9 @@ pub fn load_config(first: bool) -> Result<Config, ()> {
     Ok(cfg_data)
 }
 
-pub fn create_file_c<F>(path: PathBuf, exec: F) -> Result<(), ()>
+pub fn create_file_c<F>(path: PathBuf, exec: F) -> anyhow::Result<()>
 where
-    F: Fn(PathBuf) -> Result<(), ()>,
+    F: Fn(PathBuf) -> anyhow::Result<()>,
 {
     match path.clone().try_exists() {
         Ok(res) => {
@@ -95,15 +84,18 @@ where
                         Ok(())
                     }
                     Err(e) => {
-                        println!("ERROR: {e}");
-                        Err(())
+                        let e = anyhow!(e);
+                        let err = format!("Couldn't create file {:#?}", path);
+                        let e = e.context(err);
+                        Err(e)
                     }
                 };
             }
         }
         Err(e) => {
-            println!("ERROR: {e}");
-            return Err(());
+            let e = anyhow!(e);
+            let e = e.context("Couldn't check if file exists.");
+            return Err(e);
         }
     }
 

@@ -1,4 +1,5 @@
 use crate::cache::Cache;
+use anyhow::{anyhow, bail};
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 use std::fs::read_to_string;
@@ -17,40 +18,48 @@ pub struct Ingredient {
 }
 
 impl Recipe {
-    pub fn get_recipe(recipe: &str, first: bool) -> Result<Self, ()> {
+    pub fn get_recipe(recipe: &str, first: bool) -> anyhow::Result<Self> {
         let cache = Cache::get_cache(true)?;
 
         let recipe = match cache.entries.iter().find(|entry| entry.name == recipe) {
             None => {
                 if first {
                     Cache::rebuild()?;
-                    Self::get_recipe(recipe, false)
+                    match Self::get_recipe(recipe, false) {
+                        Ok(r) => r,
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    }
                 } else {
-                    Err(())
+                    println!("Recipe doesn't exist.");
+                    bail!("Recipe doesn't exist.")
                 }
             }
             Some(recipe) => {
                 let recipe = match read_to_string(recipe.path.clone()) {
                     Ok(s) => s,
                     Err(e) => {
-                        println!("ERROR: {e}");
-                        return Err(());
+                        let e = anyhow!(e);
+                        let e = e.context("Couldn't read recipe.");
+                        return Err(e);
                     }
                 };
 
                 let recipe = match serde_json::from_str::<Self>(&recipe) {
                     Ok(r) => r,
                     Err(e) => {
-                        println!("ERROR: {e}");
-                        return Err(());
+                        let e = anyhow!(e);
+                        let e = e.context("Couldn't deserialize recipe.");
+                        return Err(e);
                     }
                 };
 
-                Ok(recipe)
+                recipe
             }
         };
 
-        recipe
+        Ok(recipe)
     }
 }
 
