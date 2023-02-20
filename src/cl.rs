@@ -1,3 +1,5 @@
+#![allow(clippy::cmp_owned)]
+
 use crate::commands::list::List;
 use crate::commands::rebuild_cache::RebuildCache;
 use crate::commands::view::View;

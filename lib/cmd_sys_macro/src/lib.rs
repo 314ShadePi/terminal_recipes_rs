@@ -24,7 +24,6 @@ fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let variants = variants
-        .clone()
         .iter()
         .map(|e| e.ident.to_string())
         .collect::<Vec<String>>();
