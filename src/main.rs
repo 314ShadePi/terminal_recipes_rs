@@ -8,7 +8,9 @@ use std::clone::Clone;
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 use tracing::Level;
-use tracing_subscriber::fmt;
+use tracing_subscriber::fmt::writer::MakeWriterExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{fmt, layer::SubscriberExt};
 
 mod cache;
 mod cl;
@@ -70,15 +72,24 @@ fn main() {
 
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
-    let subscriber = fmt()
-        .with_writer(non_blocking)
-        .with_max_level(Level::TRACE)
-        .with_file(true)
-        .with_line_number(true)
-        .json()
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    let subscriber = tracing_subscriber::registry()
+        .with(
+            fmt::layer()
+                .with_writer(std::io::stdout.with_max_level(Level::INFO))
+                .pretty()
+                .with_file(false)
+                .with_line_number(false)
+                .with_level(true),
+        )
+        .with(
+            fmt::layer()
+                .with_writer(non_blocking.with_max_level(Level::TRACE))
+                .json()
+                .with_file(true)
+                .with_line_number(true)
+                .with_level(true),
+        )
+        .init();
 
     tracing::trace!(
         "{}::::{}::::{}::::{}",
@@ -90,10 +101,7 @@ fn main() {
 
     initializer::init().unwrap();
 
-    let error_handler = |e: anyhow::Error| {
-        eprintln!("{e:#}");
-        Ok(())
-    };
+    let error_handler = |e: anyhow::Error| Ok(());
 
     cl::CommandLine::command_line("Terminal Recipes> ", error_handler);
 }
