@@ -5,6 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/lib/cmd_sys/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/lib/cmd_sys_macro/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lib/terminal_recipes_rs_lib/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lib/terminal_recipes_rs_macro/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/lib/cmd_sys/target" />
     </content>
