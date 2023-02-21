@@ -1,7 +1,8 @@
-use anyhow::{bail, Context};
+use crate::config::Config;
+use crate::CONFIG_FILE;
+use anyhow::bail;
 use cmd_sys::Command;
 use terminal_recipes_rs_lib::ConfigOptions;
-use crate::config::Config;
 
 #[derive(Debug, Clone)]
 pub struct ConfigCmd {
@@ -14,19 +15,9 @@ impl Command for ConfigCmd {
 
     #[tracing::instrument]
     fn run(&self) -> anyhow::Result<()> {
-        let config = Config::get_config(true)?;
-        if !Config::get_opts().contains(&self.option) {
-            tracing::error!("Not a valid option: {}", self.option);
-            bail!("Not a valid option: {}", self.option);
-        }
-        let config = if self.option == "rebuild-cache-on-startup" {
-            Config {
-                rebuild_cache_on_startup: self.value.parse().context("Couldn't parse config value:")?,
-                ..config
-            }
-        } else { config };
-
-        Config::write_config(config)
+        Config::get_config(true)?
+            .update_cfg(&self.option, &self.value)?
+            .write_cfg(<&str>::clone(&CONFIG_FILE))
     }
 
     #[tracing::instrument]
@@ -39,6 +30,9 @@ impl Command for ConfigCmd {
             tracing::warn!("Too many parameters, discarding from after params[1].");
             println!("Too many parameters, discarding from after params[1].");
         }
-        Ok(Self { option: params[0].clone(), value: params[1].clone() })
+        Ok(Self {
+            option: params[0].clone(),
+            value: params[1].clone(),
+        })
     }
 }

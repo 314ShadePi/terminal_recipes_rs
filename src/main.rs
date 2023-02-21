@@ -9,7 +9,6 @@ use std::path::{Path, PathBuf};
 use std::string::ToString;
 use tracing::Level;
 use tracing_subscriber::fmt;
-use tracing_subscriber::fmt::format::FmtSpan;
 
 mod cache;
 mod cl;
@@ -76,7 +75,6 @@ fn main() {
         .with_max_level(Level::TRACE)
         .with_file(true)
         .with_line_number(true)
-        .with_span_events(FmtSpan::FULL)
         .json()
         .finish();
 

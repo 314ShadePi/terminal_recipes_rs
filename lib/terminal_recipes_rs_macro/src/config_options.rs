@@ -18,15 +18,56 @@ pub fn config_options_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let fields_pascal = fields.iter().map(|field| {
-        field.ident.clone().unwrap().to_string().to_case(Case::Pascal)
-    }).collect::<Vec<_>>();
+    let fields_pascal = fields
+        .iter()
+        .map(|field| {
+            field
+                .ident
+                .clone()
+                .unwrap()
+                .to_string()
+                .to_case(Case::Pascal)
+        })
+        .collect::<Vec<_>>();
 
-    let fields_pascal_ident = fields_pascal.iter().map(|field| {
-        let field_ident = Ident::new(field, Span::call_site());
-        let ret = quote! {#field_ident};
-        ret
-    }).collect::<Vec<_>>();
+    let fields_pascal_ident = fields_pascal
+        .iter()
+        .map(|field| {
+            let field_ident = Ident::new(field, Span::call_site());
+            let ret = quote! {#field_ident};
+            ret
+        })
+        .collect::<Vec<_>>();
+
+    let fields_kebab_ident = fields
+        .iter()
+        .map(|field| {
+            (
+                field
+                    .ident
+                    .clone()
+                    .unwrap()
+                    .to_string()
+                    .to_case(Case::Kebab),
+                field.ident.clone().unwrap(),
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let field_update_matcher = fields_kebab_ident
+        .iter()
+        .map(|(name, ident)| {
+            let ret = quote! {
+                #name => {
+                    Ok(Self {
+                        #ident: val.parse()?,
+                        ..self
+                    })
+                }
+            };
+            ret
+        })
+        .collect::<Vec<_>>();
 
     let enum_name = name.to_string() + "Opt";
     let enum_name = Ident::new(&enum_name, Span::call_site());
@@ -35,10 +76,16 @@ pub fn config_options_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         use convert_case::{Case, Casing};
         use strum::{EnumIter, EnumString, EnumVariantNames, VariantNames};
         impl #impl_generics ConfigOptions for #name #ty_generics #where_clause {
-            fn get_opts() -> Vec<String> {
-                #enum_name::VARIANTS.iter().map(|v| {
-                    v.to_case(Case::Kebab)
-                }).collect::<Vec<_>>()
+            fn update_cfg(self, opt: &str, val: &str) -> anyhow::Result<Self> {
+                match opt {
+                    #(#field_update_matcher),*,
+                    _ => {anyhow::bail!("Not a valid option.")}
+                }
+            }
+            fn write_cfg<P: AsRef<std::path::Path>>(self, file: P) -> anyhow::Result<()> {
+                let content = serde_json::to_string_pretty(&self)?;
+                std::fs::write(file, content)?;
+                Ok(())
             }
         }
         #[derive(EnumIter, EnumString, EnumVariantNames)]

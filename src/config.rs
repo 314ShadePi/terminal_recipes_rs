@@ -1,8 +1,8 @@
-use std::fs::{read_to_string, write};
+use crate::CONFIG_FILE;
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
+use std::fs::{read_to_string, write};
 use terminal_recipes_rs_lib::ConfigOptions;
-use crate::CONFIG_FILE;
 
 #[derive(Debug, Clone, Deserialize, Serialize, ConfigOptions)]
 pub struct Config {
@@ -20,7 +20,8 @@ impl Config {
                 if first {
                     let content = serde_json::to_string_pretty(&Config::default())
                         .context("Couldn't serialize config.")?;
-                    write(<&str>::clone(&CONFIG_FILE), content).context("Couldn't write config.")?;
+                    write(<&str>::clone(&CONFIG_FILE), content)
+                        .context("Couldn't write config.")?;
                     Self::get_config(false)?
                 } else {
                     let e = anyhow!(e);
@@ -31,11 +32,6 @@ impl Config {
         };
 
         Ok(config)
-    }
-
-    pub fn write_config(config: Self) -> anyhow::Result<()> {
-        let content = serde_json::to_string_pretty(&config).context("Couldn't serialize config.")?;
-        write(<&str>::clone(&CONFIG_FILE), content).context("Couldn't write config.")
     }
 }
 
