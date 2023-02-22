@@ -18,7 +18,7 @@ pub struct Ingredient {
 }
 
 impl Recipe {
-    #[tracing::instrument]
+    #[tracing::instrument(name = "Recipe::get_recipe()")]
     pub fn get_recipe(recipe: &str, first: bool) -> anyhow::Result<Self> {
         let cache = Cache::get_cache(true)?;
 

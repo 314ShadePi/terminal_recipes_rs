@@ -20,7 +20,7 @@ pub struct Entry {
 }
 
 impl Cache {
-    #[tracing::instrument]
+    #[tracing::instrument(name = "Cache::rebuild()")]
     pub fn rebuild() -> anyhow::Result<()> {
         create_file_c(
             PathBuf::from(&<&str>::clone(&CONFIG_FILE).to_string()),
@@ -65,7 +65,7 @@ impl Cache {
         write(<&str>::clone(&CACHE_FILE), content).context("Couldn't write cache.")
     }
 
-    #[tracing::instrument]
+    #[tracing::instrument(name = "Cache::get_cache()")]
     pub fn get_cache(first: bool) -> anyhow::Result<Self> {
         let cache = read_to_string(<&str>::clone(&CACHE_FILE)).context("Couldn't read cache.")?;
 

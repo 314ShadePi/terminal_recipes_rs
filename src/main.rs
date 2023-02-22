@@ -11,6 +11,7 @@ use tracing::Level;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, layer::SubscriberExt};
+use tracing_subscriber::fmt::time;
 
 mod cache;
 mod cl;
@@ -72,14 +73,18 @@ fn main() {
 
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
-    let subscriber = tracing_subscriber::registry()
+    tracing_subscriber::registry()
         .with(
             fmt::layer()
                 .with_writer(std::io::stdout.with_max_level(Level::INFO))
                 .pretty()
                 .with_file(false)
                 .with_line_number(false)
-                .with_level(true),
+                .with_level(true)
+                .with_target(true)
+                .with_thread_ids(false)
+                .with_thread_names(false)
+                .with_timer(time::LocalTime::rfc_3339()),
         )
         .with(
             fmt::layer()
@@ -87,7 +92,13 @@ fn main() {
                 .json()
                 .with_file(true)
                 .with_line_number(true)
-                .with_level(true),
+                .with_level(true)
+                .with_current_span(true)
+                .with_span_list(true)
+                .with_target(true)
+                .with_thread_ids(true)
+                .with_thread_names(true)
+                .with_timer(time::LocalTime::rfc_3339()),
         )
         .init();
 
@@ -101,7 +112,7 @@ fn main() {
 
     initializer::init().unwrap();
 
-    let error_handler = |e: anyhow::Error| Ok(());
+    let error_handler = |_e: anyhow::Error| Ok(());
 
     cl::CommandLine::command_line("Terminal Recipes> ", error_handler);
 }

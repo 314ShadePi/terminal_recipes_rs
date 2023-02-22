@@ -10,7 +10,7 @@ pub struct Config {
 }
 
 impl Config {
-    #[tracing::instrument]
+    #[tracing::instrument(name = "config::Config::get_config()")]
     pub fn get_config(first: bool) -> anyhow::Result<Self> {
         let config = read_to_string(<&str>::clone(&CONFIG_FILE)).context("Couldn't read cache.")?;
 

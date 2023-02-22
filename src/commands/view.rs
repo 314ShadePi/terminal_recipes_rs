@@ -9,7 +9,7 @@ pub struct View {
 impl Command for View {
     const CMD: &'static str = "view";
 
-    #[tracing::instrument]
+    #[tracing::instrument(name = "View::run()")]
     fn run(&self) -> anyhow::Result<()> {
         let recipe = Recipe::get_recipe(&self.recipe, true)?;
 
@@ -17,7 +17,7 @@ impl Command for View {
         Ok(())
     }
 
-    #[tracing::instrument]
+    #[tracing::instrument(name = "View::new_cmd()")]
     fn new_cmd(params: Vec<String>) -> anyhow::Result<Self> {
         Ok(Self {
             recipe: params.join(" "),
