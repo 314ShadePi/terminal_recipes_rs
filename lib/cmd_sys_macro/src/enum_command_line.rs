@@ -87,7 +87,7 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                     false => (input, ""),
                 };
 
-                if !["exit", #(#variant_cmds),*].contains(&s.0) {
+                if !["exit", "help", #(#variant_cmds),*].contains(&s.0) {
                     return Ok(Validation::Invalid("Not a command.".into()));
                 }
 
@@ -109,16 +109,13 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                             if s == "exit".to_string() {
                                 return;
                             } else {
-                                let split = match s.contains(" ") {
-                                    true => match s.split(' ') {
-                                        None => bail!("split_once() operation failed."),
-                                        Some(s) => s,
-                                    },
-                                    false => vec![s],
+                                let mut split = match s.contains(" ") {
+                                    true => s.split(' ').collect(),
+                                    false => vec![s.as_str()],
                                 };
 
                                 if split[0].clone() == "help".to_string() {
-                                    let split = split.remove(0);
+                                    split.remove(0);
                                     if split.is_empty() || split[0].clone() == "" {
                                         match Self::help(None) {
                                             Ok(()) => {}
@@ -130,7 +127,7 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                                             },
                                         }
                                     } else {
-                                        match Self::help(split[0].clone) {
+                                        match Self::help(Some(split[0])) {
                                             Ok(()) => {}
                                             Err(e) => match error_handler(e) {
                                                 Ok(()) => {}
@@ -185,7 +182,13 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
 
             #[tracing::instrument]
             fn help(cmd: Option<&str>) -> anyhow::Result<()> {
-                todo!()
+                if let Some(s) = cmd {
+                    println!("Help! {}", s);
+                    Ok(())
+                } else {
+                    println!("Help!");
+                    Ok(())
+                }
             }
         }
     })
