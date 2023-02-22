@@ -8,4 +8,5 @@ pub trait EnumCommandLine: Clone {
     where
         F: Fn(anyhow::Error) -> Result<(), ()>;
     fn from_cl(s: &str) -> anyhow::Result<Self>;
+    fn help(cmd: Option<&str>) -> anyhow::Result<()>;
 }

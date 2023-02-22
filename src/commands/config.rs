@@ -12,15 +12,17 @@ pub struct ConfigCmd {
 
 impl Command for ConfigCmd {
     const CMD: &'static str = "config";
+    const HELP: &'static str = "";
+    const HELP_LONG: &'static str = "";
 
-    #[tracing::instrument]
+    #[tracing::instrument(name = "ConfigCmd::run()")]
     fn run(&self) -> anyhow::Result<()> {
         Config::get_config(true)?
             .update_cfg(&self.option, &self.value)?
             .write_cfg(<&str>::clone(&CONFIG_FILE))
     }
 
-    #[tracing::instrument]
+    #[tracing::instrument(name = "ConfigCmd::new_cmd()")]
     fn new_cmd(params: Vec<String>) -> anyhow::Result<Self> {
         if params.len() < 2 {
             tracing::error!("Not enough parameters.");
