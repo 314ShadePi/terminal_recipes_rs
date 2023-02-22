@@ -12,6 +12,8 @@ pub struct ConfigCmd {
 
 impl Command for ConfigCmd {
     const CMD: &'static str = "config";
+    const HELP: &'static str = "";
+    const HELP_LONG: &'static str = "";
 
     #[tracing::instrument(name = "ConfigCmd::run()")]
     fn run(&self) -> anyhow::Result<()> {

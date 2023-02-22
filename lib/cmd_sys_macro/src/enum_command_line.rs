@@ -109,23 +109,57 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                             if s == "exit".to_string() {
                                 return;
                             } else {
-                                match Self::from_cl(&s) {
-                                    Ok(c) => match c.run() {
-                                        Ok(()) => {}
+                                let split = match s.contains(" ") {
+                                    true => match s.split(' ') {
+                                        None => bail!("split_once() operation failed."),
+                                        Some(s) => s,
+                                    },
+                                    false => vec![s],
+                                };
+
+                                if split[0].clone() == "help".to_string() {
+                                    let split = split.remove(0);
+                                    if split.is_empty() || split[0].clone() == "" {
+                                        match Self::help(None) {
+                                            Ok(()) => {}
+                                            Err(e) => match error_handler(e) {
+                                                Ok(()) => {}
+                                                Err(()) => {
+                                                    return;
+                                                }
+                                            },
+                                        }
+                                    } else {
+                                        match Self::help(split[0].clone) {
+                                            Ok(()) => {}
+                                            Err(e) => match error_handler(e) {
+                                                Ok(()) => {}
+                                                Err(()) => {
+                                                    return;
+                                                }
+                                            },
+                                        }
+                                    }
+                                } else {
+                                    match Self::from_cl(&s) {
+                                        Ok(c) => match c.run() {
+                                            Ok(()) => {}
+                                            Err(e) => match error_handler(e) {
+                                                Ok(()) => {}
+                                                Err(()) => {
+                                                    return;
+                                                }
+                                            },
+                                        },
                                         Err(e) => match error_handler(e) {
                                             Ok(()) => {}
                                             Err(()) => {
                                                 return;
                                             }
                                         },
-                                    },
-                                    Err(e) => match error_handler(e) {
-                                        Ok(()) => {}
-                                        Err(()) => {
-                                            return;
-                                        }
-                                    },
+                                    }
                                 }
+
                             }
                         }
                         Err(_) => {}
@@ -147,6 +181,11 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
                     #(#variant_ctors),*,
                     _ => bail!("Not a command."),
                 }
+            }
+
+            #[tracing::instrument]
+            fn help(cmd: Option<&str>) -> anyhow::Result<()> {
+                todo!()
             }
         }
     })

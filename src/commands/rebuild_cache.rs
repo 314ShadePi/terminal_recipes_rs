@@ -6,6 +6,8 @@ pub struct RebuildCache;
 
 impl Command for RebuildCache {
     const CMD: &'static str = "rebuild-cache";
+    const HELP: &'static str = "";
+    const HELP_LONG: &'static str = "";
 
     #[tracing::instrument(name = "RebuildCache::run()")]
     fn run(&self) -> anyhow::Result<()> {

@@ -6,6 +6,8 @@ pub struct List;
 
 impl Command for List {
     const CMD: &'static str = "list";
+    const HELP: &'static str = "";
+    const HELP_LONG: &'static str = "";
 
     #[tracing::instrument(name = "List::run()")]
     fn run(&self) -> anyhow::Result<()> {
