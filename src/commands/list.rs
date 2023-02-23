@@ -6,8 +6,8 @@ pub struct List;
 
 impl Command for List {
     const CMD: &'static str = "list";
-    const HELP: &'static str = "";
-    const HELP_LONG: &'static str = "";
+    const HELP_SHORT: &'static str = "list -- List all recipes in cache.";
+    const HELP_LONG: &'static str = "list -- List all recipes in cache.";
 
     #[tracing::instrument(name = "List::run()")]
     fn run(&self) -> anyhow::Result<()> {

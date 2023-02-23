@@ -63,6 +63,27 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
         })
         .collect::<Vec<_>>();
 
+    let vhelp_short = variants.iter().map(|e| {
+        let cmd_ident = Ident::new(e, Span::call_site());
+        let cmd_h_ident = Ident::new("HELP_SHORT", Span::call_site());
+        let vhelp_ident = quote! {#cmd_ident::#cmd_h_ident};
+        let ret = quote! {println!("{}", #vhelp_ident);};
+        ret
+    }).collect::<Vec<_>>();
+    let vhelp_long = variants.iter().map(|e| {
+        let cmd_ident = Ident::new(e, Span::call_site());
+        let cmd_h_ident = Ident::new("HELP_LONG", Span::call_site());
+        let vhelp_ident = quote! {#cmd_ident::#cmd_h_ident};
+        let cmd_c_ident = Ident::new("CMD", Span::call_site());
+        let matcher = quote! {#cmd_ident::#cmd_c_ident};
+        let ret = quote! {
+            #matcher => {
+                println!("{}", #vhelp_ident);
+            }
+        };
+        ret
+    }).collect::<Vec<_>>();
+
     Ok(quote! {
         use inquire::validator::Validation;
         use inquire::CustomUserError;
@@ -182,13 +203,23 @@ pub fn commands_enum_inner(ast: &DeriveInput) -> syn::Result<TokenStream> {
 
             #[tracing::instrument]
             fn help(cmd: Option<&str>) -> anyhow::Result<()> {
-                if let Some(s) = cmd {
-                    println!("Help! {}", s);
-                    Ok(())
-                } else {
-                    println!("Help!");
-                    Ok(())
+                match cmd {
+                    None => {
+                        println!("Terminal Recipes RS - Help.");
+                        println!("Basic usage:");
+                        println!("<command> [options]");
+                        println!("Commands:");
+                        #(#vhelp_short)*
+                    }
+                    Some(cmd) => {
+                        match cmd {
+                            #(#vhelp_long),*
+                            _ => bail!("Not a command.")
+                        }
+                    }
                 }
+
+                Ok(())
             }
         }
     })

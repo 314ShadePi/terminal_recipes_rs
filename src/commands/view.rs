@@ -8,8 +8,8 @@ pub struct View {
 
 impl Command for View {
     const CMD: &'static str = "view";
-    const HELP: &'static str = "";
-    const HELP_LONG: &'static str = "";
+    const HELP_SHORT: &'static str = "view <recipe> -- View specific recipe.";
+    const HELP_LONG: &'static str = "view <recipe> -- View specific recipe.";
 
     #[tracing::instrument(name = "View::run()")]
     fn run(&self) -> anyhow::Result<()> {
